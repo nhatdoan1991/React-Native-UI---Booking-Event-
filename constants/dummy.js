@@ -1,5 +1,27 @@
 import { SIZES } from './theme';
 
+export const Catagories =[
+  {
+    id:1,
+    name:'connect',
+    checked: true,
+  },
+  {
+    id:2,
+    name:'mentor',
+    checked: true
+  },
+  {
+    id:3,
+    name:'upskilling',
+    checked: true
+  },
+  {
+    id:4,
+    name:'impact',
+    checked: true
+  }
+]
 export const Events = [
   {
     id: 1,
@@ -254,6 +276,6 @@ export const MapStyle = [
   },
 ];
 
-const dummyData = {FavoriteEvents, Events, Region, MapStyle };
+const dummyData = {Catagories,FavoriteEvents, Events, Region, MapStyle };
 
 export default dummyData;

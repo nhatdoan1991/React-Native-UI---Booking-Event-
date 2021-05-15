@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Featured, Schedule, Tickets, Mine } from '../screens';
 import { COLORS, SIZES, FONTS, icons } from '../constants';
 import { McText, McIcon } from '../components';
+import addEvent from '../screens/addEvent';
 
 const Tab = createBottomTabNavigator();
 
@@ -80,14 +81,14 @@ const Tabs = ({ params }) => {
         }}
       />
       <Tab.Screen
-        name="Tickets"
-        component={Tickets}
+        name="addEvent"
+        component={addEvent}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} icon={icons.tab_3} />
           ),
           tabBarLabel: ({ focused }) => (
-            <TabLabel focused={focused} text="Tickets" />
+            <TabLabel focused={focused} text="Add Event" />
           ),
         }}
       />

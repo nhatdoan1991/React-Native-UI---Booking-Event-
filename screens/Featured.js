@@ -8,15 +8,134 @@
  * [x] Build the FEATURED section (Flatlist)
  * [x] Build the FOR YOU section 
  */
-import React from 'react';
-import { Text, View, StyleSheet, Button, SafeAreaView,TextInput,FlatList,ImageBackground,TouchableWithoutFeedback} from 'react-native';
+import React,{useState,useEffect} from 'react';
+import { Text, View, StyleSheet,CheckBox, Button, SafeAreaView,TextInput,FlatList,ImageBackground,TouchableOpacity,TouchableWithoutFeedback,Modal} from 'react-native';
 import moment from 'moment';
 import {LinearGradient} from'expo-linear-gradient';
+import {Calendar, CalendarList } from 'react-native-calendars';
 import styled from 'styled-components/native';
 import {dummyData,FONTS,SIZES,COLORS,icons,images} from '../constants';
 import {McText,McIcon,McAvatar} from '../components';
 import { ScrollView } from 'react-native-gesture-handler';
 const Featured = ({ navigation }) => {
+
+  // State for search keyword
+  const [searchKey,setsearchKey] = useState("")
+  //State for Modal visibility 
+  const [visible, setVisible]= useState(false)
+
+  const [filters,setFitters] = useState(null)
+  //State for Topic in filter modal
+  const [topic,setToppic] = useState("")
+
+  //State for Calendar in filter modal
+  const [isCalendarOpen,setIsCalenderOpen]= useState(false)
+  const [calendar,setCalendar] = useState("")
+  const [isCalendarEndOpen,setIsCalenderEndOpen]= useState(false)
+  const [calendarEnd,setCalendarEnd]= useState("")
+
+  //State for check boxes
+  const [isConnectCheck, setIsConnectCheck] = useState(true)
+  const [isMentorCheck, setIsMentorCheck] = useState(true)
+  const [isUpskillingCheck, setIsUpskillingCheck] = useState(true)
+  const [isImpactCheck, setIsImpactCheck] = useState(true)
+
+  const Catagories= dummyData.Catagories
+  const [CatagoriesState,setCatagoriesState]= useState(Catagories)
+  
+  //Handle insert onlu number for Start Date
+  const handleInputCalendar = (text) =>{
+    const count = 0
+    if (/^\d+$/.test(text)||text==="" ||text.includes("-")) {
+      if(text.length ===4 || text.length===7){
+        text=text+"-"
+      }
+      setCalendar(text)
+    }
+      
+  }
+   //Handle insert onlu number for End Date
+  const handleInputCalendarEnd = (text) =>{
+    const count = 0
+    if (/^\d+$/.test(text)||text==="" ||text.includes("-")) {
+      if(text.length ===4 || text.length===7){
+        text=text+"-"
+      }
+      setCalendarEnd(text)
+    }
+      
+  }
+  //Handler oncheck for each check box
+  const onCheck = (id)=>{
+    const data = CatagoriesState
+    const index= CatagoriesState.findIndex(x=>x.id===id)    
+    if(data[index].checked){
+      data[index].checked=false
+      setFitters(data[index].name)
+      switch(data[index].name){
+        case "connect":
+        setIsConnectCheck(false)
+        break;
+        case "mentor":
+        setIsMentorCheck(false)
+        break;
+        case "upskilling":
+        setIsUpskillingCheck(false)
+        break;
+        case "impact":
+        setIsImpactCheck(false)
+        break;
+        default:
+      }
+      
+    }else{
+      //let filteredArray = filters.filter(item => item !== test[index].name)
+      //setFitters(filteredArray)
+      data[index].checked=true
+      switch(data[index].name){
+        case "connect":
+        setIsConnectCheck(true)
+        break;
+        case "mentor":
+        setIsMentorCheck(true)
+        break;
+        case "upskilling":
+        setIsUpskillingCheck(true)
+        break;
+        case "impact":
+        setIsImpactCheck(true)
+        break;
+        default:
+      }
+    }
+    setCatagoriesState(data)
+  }
+  //All filter for search bar + filter modal
+  const searchSpecialEvent = (data)=>{
+    const columns = data[0] && Object.keys(data[0])
+    return data.filter((row)=>
+    columns.some((column)=>row[column].toString().toLowerCase().indexOf(searchKey.toLowerCase())>-1
+    &&(row["type"].toString().toLowerCase().indexOf(topic.toLowerCase())>-1
+    || row["title"].toString().toLowerCase().indexOf(topic.toLowerCase())>-1)
+    && row["startingTime"].toString().toLowerCase().indexOf(calendar.toLowerCase())>-1
+    ))
+  }
+  const renderCatogoryFilter = ()=>{
+    return CatagoriesState.map((item,key)=>{
+      return (
+        <TouchableOpacity style ={{alignItems:"center",flexDirection:"row"}} key={key} onPress={()=>{onCheck(item.id)}}>
+          <CheckBox
+          tintColors={{ true: COLORS.transparentBlack, false: COLORS.black}}
+          value={item.checked}
+          onValueChange={()=>{
+            onCheck(item.id)
+          }}/>
+          <McText h3>{item.name}</McText>
+        </TouchableOpacity>
+      )
+    })
+
+  }
 
   const _renderItem =({item,index})=>{
     return(
@@ -68,7 +187,8 @@ const Featured = ({ navigation }) => {
       </TouchableWithoutFeedback>
     )
   }
-
+ 
+  
   return (
     <SafeAreaView style={styles.container}>
     {/*Header Section */}
@@ -81,6 +201,24 @@ const Featured = ({ navigation }) => {
       </View>
       <McAvatar source={images.avatar}/>
     </SectionHeader>
+    <View style={{
+      alignContent:'center',
+      justifyContent:'center',
+      alignItems:"flex-end",
+      marginRight: 30,
+      marginBottom:5
+    }}
+    >
+      <TouchableWithoutFeedback onPress={()=>{
+          navigation.navigate('addEvent')
+      }}>
+        <McText h4>Add Event
+        <McIcon source={icons.share}size={24}/>
+        </McText>
+        
+     </TouchableWithoutFeedback>
+    </View>
+    
     {/*Seach section */}
     <SearchSection>
     <SearchView>
@@ -90,41 +228,286 @@ const Featured = ({ navigation }) => {
             fontSize:17,
             color: COLORS.white,
             width:300 
-            }}>
+            }}
+          value= {searchKey}
+          onChangeText={text=> setsearchKey(text)}
+          >
           </TextInput>
-        <McIcon source={icons.filter}size={24}/>
+        <View>
+        <TouchableWithoutFeedback onPress={()=>{
+        setVisible(true)
+        }}>
+          <McIcon source={icons.filter}size={24}/>
+        </TouchableWithoutFeedback>
+        </View>
     </SearchView>
     </SearchSection>
+    <Modal 
+    transparent = {true}
+    visible= {visible}
+    >
+      <View style={{
+      backgroundColor:"#000000aa",
+      flex:1,
+      paddingTop:150
+      }}> 
+      <LinearGradient
+      colors={COLORS.linear}
+      start = {{x:0,y:0}}
+      end = {{x:1, y:1}}
+      style={{
+      height: 320,
+      marginHorizontal:30,
+      borderRadius:15,
+      }}
+    > 
+      <View style={{
+        flexDirection:'row',
+        marginLeft:-30,
+        marginTop:20,
+        justifyContent:'center',
+        alignItems:'center'
+        }}>
+        <View style={{
+          marginRight:50,
+          paddingLeft:50,
+          alignContent:'space-between'
+        }}>
+        <McText h1 style={{
+          backgroundColor:COLORS.transparentBlack,
+          width:200,
+          borderRadius:10,
+          color: COLORS.white,
+        }}>  Event Filter</McText>
+        </View>
+          <TouchableOpacity
+        style={{
+          marginLeft:80,
+          width:20,
+          height:20,
+          borderRadius:10,
+          backgroundColor:COLORS.transparentBlack,
+          alignItems: 'flex-start',
+          justifyContent: 'center'
+        }}
+        onPress={()=>{setVisible(false)}}>
+          <McText h4 style={{color:COLORS.white,letterSpacing:1}}> X</McText>
+
+        </TouchableOpacity>
+      
+      </View>
+      <View style={{
+        flexDirection:'row'
+      }}>
+      <View style={{
+        marginTop: 20,
+        alignContent:"flex-start",
+        justifyContent:"flex-start",
+        marginLeft:20
+      }}>
+      {renderCatogoryFilter()}
+      </View>
+      <View style={{
+        marginTop: 20,
+        alignContent:"flex-start",
+        justifyContent:"flex-start",
+        marginLeft:50
+      }}>
+         <View>
+          <McText h4>By Topic</McText>
+          <TextInput 
+                placeholder="Enter topic" placeholderTextColor={COLORS.lightGray} style={{
+                backgroundColor:COLORS.transparentWhite,
+                borderRadius:15,
+                fontSize:17,
+                color: COLORS.white,
+                width:150 ,
+                textAlign:'center'
+                }}
+              value= {topic}
+              onChangeText={text=> setToppic(text)}
+              >
+            </TextInput>
+        </View>
+        <View>
+          <McText h4>By ZipCode</McText>
+          <TextInput 
+                placeholder="Ex: 95670" placeholderTextColor={COLORS.lightGray} style={{
+                backgroundColor:COLORS.transparentWhite,
+                borderRadius:15,
+                fontSize:17,
+                color: COLORS.white,
+                width:150 ,
+                textAlign:'center'
+                }}
+              //value= {searchKey}
+              //onChangeText={text=> setsearchKey(text)}
+              >
+            </TextInput>
+        </View>
+       
+        
+       
+      </View>
+      </View>
+      <View style={{
+        flexDirection:'row',
+        marginTop:20,
+        marginLeft:30
+      }}>
+      <View>
+          <View style={{
+            flexDirection:'row'
+          }}>
+          <McText h4> Start Date</McText>
+          <View style={{
+            marginLeft:40
+          }}>
+          <TouchableWithoutFeedback onPress={()=>{
+            setIsCalenderOpen(!isCalendarOpen)
+          }}>
+          <McIcon source={icons.filter}size={24}/>
+          </TouchableWithoutFeedback>
+          </View>
+          </View>
+          
+          <TextInput
+            keyboardType = 'numeric' 
+            placeholder="yyyy-mm-dd" placeholderTextColor={COLORS.lightGray} style={{
+            backgroundColor:COLORS.transparentWhite,
+            borderRadius:15,
+            fontSize:17,
+            color: COLORS.white,
+            width:150 ,
+            textAlign:'center'
+            }}
+            maxLength= {10}
+            value= {calendar}
+            onChangeText={text=> handleInputCalendar(text)}
+          >
+          </TextInput>
+          {isCalendarOpen&&
+          <Calendar         
+            style={[styles.calendar,{width:200,marginLeft:-50}]}
+            minDate={'2021-05-13'}
+            onDayPress={(day)=>{
+              setCalendar(moment(day.dateString).format('Y/MM/DD').toUpperCase())
+              setIsCalenderOpen(!isCalendarOpen)
+            }}
+          />
+          }
+                          
+        </View>
+        <View style={{
+          marginLeft:20
+        }}>
+          <View style={{
+            flexDirection:'row'
+            
+          }}>
+          <McText h4> End Date</McText>
+          <View style={{
+            marginLeft:50
+          }}>
+          <TouchableWithoutFeedback onPress={()=>{
+            setIsCalenderEndOpen(!isCalendarEndOpen)
+          }}>
+          <McIcon source={icons.filter}size={24}/>
+          </TouchableWithoutFeedback>
+          </View>
+          </View>
+          
+          <TextInput
+            keyboardType = 'numeric' 
+            placeholder="yyyy-mm-dd" placeholderTextColor={COLORS.lightGray} style={{
+            backgroundColor:COLORS.transparentWhite,
+            borderRadius:15,
+            fontSize:17,
+            color: COLORS.white,
+            width:150 ,
+            textAlign:'center'
+            }}
+            maxLength= {10}
+            value= {calendarEnd}
+            onChangeText={text=> handleInputCalendarEnd(text)}
+          >
+          </TextInput>
+          {isCalendarEndOpen&&
+          <Calendar         
+            style={[styles.calendar,{width:200}]}
+            minDate={'2021-05-13'}
+            onDayPress={(day)=>{
+              setCalendarEnd(moment(day.dateString).format('Y/MM/DD').toUpperCase())
+              setIsCalenderEndOpen(!isCalendarEndOpen)
+            }}
+          />
+          }
+                          
+        </View>
+      </View>
+    </LinearGradient>
+    </View>
+           
+    </Modal>
     <ScrollView>
-    {/*Featerd */}
+    {/*Connect */}
     <SectionTitle>
-      <McText h5>FEATURED</McText>
+      <McText h5>CONNECT</McText>
     </SectionTitle>
-    <View>
-      <FlatList
+    <View>{isConnectCheck&&<FlatList
       horizontal
       contentContainerStyle={{}}
       showsHorizontalScrollIndicator={false}
       keyExtractor={(item)=>'event_'+item.id}
-      data = {dummyData.Events}
+      data = {searchSpecialEvent(dummyData.Events)}
       renderItem={_renderItem}
-      ></FlatList>
+      ></FlatList>}
+      
     </View>
     {/*Featerd */}
     <SectionTitle>
-      <McText h5>YOUR FAVORITE</McText>
+      <McText h5>MENTOR</McText>
     </SectionTitle>
     <View>
-      <FlatList
+      {isMentorCheck&&<FlatList
       horizontal
       contentContainerStyle={{}}
       showsHorizontalScrollIndicator={false}
       keyExtractor={(item)=>'event_'+item.id}
-      data = {dummyData.FavoriteEvents}
+      data = {searchSpecialEvent(dummyData.FavoriteEvents)}
       renderItem={_renderItem}
-      ></FlatList>
+      ></FlatList>}
+      
     </View>
-    
+    {/*UPSKILLING */}
+    <SectionTitle>
+      <McText h5>UPSKILLING</McText>
+    </SectionTitle>
+    <View>
+      {isUpskillingCheck&& <FlatList
+      horizontal
+      contentContainerStyle={{}}
+      showsHorizontalScrollIndicator={false}
+      keyExtractor={(item)=>'event_'+item.id}
+      data = {searchSpecialEvent(dummyData.FavoriteEvents)}
+      renderItem={_renderItem}
+      ></FlatList>}
+     
+    </View>{/*IMPACT */}
+    <SectionTitle>
+      <McText h5>IMPACT</McText>
+    </SectionTitle>
+    <View>
+      {isImpactCheck&& <FlatList
+      horizontal
+      contentContainerStyle={{}}
+      showsHorizontalScrollIndicator={false}
+      keyExtractor={(item)=>'event_'+item.id}
+      data = {searchSpecialEvent(dummyData.FavoriteEvents)}
+      renderItem={_renderItem}
+      ></FlatList>}
+     
+    </View>
     {/*For You Section */}
     <SectionTitle>
       <McText h5>For You</McText>
