@@ -10,9 +10,9 @@ yarn install
 yarn ios
 ```
 ### Demo
-Landing page
+Landing page   
 ![alt text](https://github.com/nhatdoan1991/React-Native-UI---Booking-Event-/blob/main/bookingevent.PNG?raw=true)
-Event Detail
+Event Detail   
 ![alt text](https://github.com/nhatdoan1991/React-Native-UI---Booking-Event-/blob/main/bookingevent2.PNG?raw=true)
-Create New Event
+Create New Event   
 ![alt text](https://github.com/nhatdoan1991/React-Native-UI---Booking-Event-/blob/main/bookingevent3.PNG?raw=true)
